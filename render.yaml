@@ -1,28 +1,50 @@
 # --- START OF FILE render.yaml ---
+# This file is the single source of truth for your Render service.
+# It installs system dependencies, sets up the build, and starts the service.
 
 services:
   - type: web
-    name: truth-social-scraper
+    name: truth-social-scraper # This name will appear on your Render dashboard
     env: python
-    plan: free
-    healthCheckPath: "/"
+    plan: free # Ensures it uses the free tier
     
-    # Define a persistent disk to store the Playwright browser cache
-    disks:
-      - name: playwright-cache
-        mountPath: /opt/render/.cache/ms-playwright
+    # The build command installs Python packages and then Playwright's browsers
+    buildCommand: "pip install -r requirements.txt && playwright install --with-deps"
     
-    # The build command is now simpler as we let Playwright manage itself
-    buildCommand: "pip install -r requirements.txt && playwright install"
-    
-    # The start command remains the same
+    # The start command uses Gunicorn to run your Flask app
     startCommand: "gunicorn app:app"
     
-    # Set an environment variable to tell Playwright where to find its cache
+    # Health check for Render to know your service is alive
+    healthCheckPath: "/"
+    
+    # Environment variables for your secrets (set these in the Render dashboard)
     envVars:
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /opt/render/.cache/ms-playwright
       - key: BOT_TOKEN
-        sync: false # Set in dashboard
+        sync: false
       - key: CHANNEL_ID
-        sync: false # Set in dashboard
+        sync: false
+        
+    # === THE CRITICAL FIX ===
+    # Pre-install the system packages that Playwright's browser needs to run
+    aptPackages:
+      - libnss3
+      - libatk1.0-0
+      - libatk-bridge2.0-0
+      - libcups2
+      - libxcomposite1
+      - libxdamage1
+      - libxrandr2
+      - libgbm1
+      - libxss1
+      - libasound2
+      - libpangocairo-1.0-0
+      - fonts-liberation
+      - libappindicator3-1
+      - lsb-release
+      - libgbm-dev
+      - libgdk-pixbuf2.0-0
+      - libgtk-3-0
+      - libx11-xcb1
+      - libxcb-dri3-0
+      - libdrm2
+      - libharfbuzz-icu0
