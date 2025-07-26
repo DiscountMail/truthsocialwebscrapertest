@@ -1,31 +1,40 @@
 # --- START OF FILE render.yaml ---
-# This file is the single source of truth for your Render service.
-# It installs system dependencies, sets up the build, and starts the service.
+# This is the single source of truth for your Render service.
 
 services:
   - type: web
-    name: truth-social-scraper # This name will appear on your Render dashboard
+    name: truth-social-scraper # You can change this name if you like
     env: python
     plan: free # Ensures it uses the free tier
     
-    # The build command installs Python packages and then Playwright's browsers
-    buildCommand: "pip install -r requirements.txt && playwright install --with-deps"
+    # Define a persistent disk to store the Playwright browser cache.
+    # This is the key to fixing the "Executable doesn't exist" error.
+    disks:
+      - name: playwright-cache
+        mountPath: /opt/render/.cache/ms-playwright
     
-    # The start command uses Gunicorn to run your Flask app
+    # The build command installs Python packages and then Playwright's browsers.
+    # The browsers will be installed onto the persistent disk defined above.
+    buildCommand: "pip install -r requirements.txt && playwright install"
+    
+    # The start command uses Gunicorn to run your Flask app.
     startCommand: "gunicorn app:app"
     
-    # Health check for Render to know your service is alive
+    # Health check for Render to know your service is alive.
     healthCheckPath: "/"
     
-    # Environment variables for your secrets (set these in the Render dashboard)
+    # Environment variables for your secrets.
+    # You must still set the actual values in the Render dashboard's "Environment" tab.
     envVars:
       - key: BOT_TOKEN
         sync: false
       - key: CHANNEL_ID
         sync: false
+      # This explicitly tells Playwright to use the persistent disk path.
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/.cache/ms-playwright
         
-    # === THE CRITICAL FIX ===
-    # Pre-install the system packages that Playwright's browser needs to run
+    # Pre-install the system packages to fix the "Host system is missing dependencies" warning.
     aptPackages:
       - libnss3
       - libatk1.0-0
