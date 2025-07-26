@@ -2,14 +2,13 @@
 
 services:
   - type: web
-    name: truth-social-scraper # You can name this whatever you like
+    name: truth-social-scraper # This name will appear on your Render dashboard
     env: python
-    plan: free
+    plan: free # Ensures it uses the free tier
     buildCommand: "./build.sh"
     startCommand: "gunicorn app:app"
     healthCheckPath: "/"
-    # The secrets from your Render dashboard will be loaded automatically
-    # Pre-install the system packages that Playwright's browser needs to run
+    # Pre-install the system packages that Playwright needs to run correctly
     aptPackages:
       - libnss3
       - libatk1.0-0
