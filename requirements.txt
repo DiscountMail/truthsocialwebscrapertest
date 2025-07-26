@@ -1,3 +1,4 @@
 playwright
 beautifulsoup4
 discord.py
+gunicorn
