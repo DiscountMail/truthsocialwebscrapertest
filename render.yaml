@@ -1,10 +1,15 @@
+# --- START OF FILE render.yaml ---
+
 services:
   - type: web
-    name: trump-tracker-bot
+    name: truth-social-scraper # You can name this whatever you like
     env: python
-    buildCommand: bash build.sh
-    startCommand: python app.py
-    # Pre-install OS packages for Playwright
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn app:app"
+    healthCheckPath: "/"
+    # The secrets from your Render dashboard will be loaded automatically
+    # Pre-install the system packages that Playwright's browser needs to run
     aptPackages:
       - libnss3
       - libatk1.0-0
@@ -20,3 +25,4 @@ services:
       - fonts-liberation
       - libappindicator3-1
       - lsb-release
+      - libgbm-dev
