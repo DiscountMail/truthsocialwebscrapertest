@@ -1,4 +1,4 @@
-# --- START OF FILE trump_tracker.py ---
+# --- START OF FILE app.py ---
 
 import discord
 from discord.ext import tasks
@@ -9,11 +9,31 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import traceback
 from dotenv import load_dotenv
+from flask import Flask
+from threading import Thread
+
+# ==============================================================================
+#  1. FLASK WEB SERVER SETUP (This part was missing)
+# ==============================================================================
+# This creates the web server instance that gunicorn will look for.
+app = Flask('')
+
+@app.route('/')
+def home():
+    """This route is called by Render's health checks and UptimeRobot."""
+    return "Scraper bot is alive and running!"
+
+def run_flask_app():
+    """Runs the Flask app on the port provided by Render."""
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# ==============================================================================
+#  2. DISCORD BOT AND SCRAPER LOGIC (Your existing code)
+# ==============================================================================
 
 # --- Configuration ---
-load_dotenv() # Load environment variables from .env file
-
-# Get secrets from environment variables
+load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 URL = "https://civictracker.us/executive/member/?uuid=3094abf7-4a95-4b8d-8c8d-af7d1c3747a1"
@@ -58,11 +78,10 @@ def scrape_with_playwright(url):
     print("Playwright thread finished.")
     return html_content
 
-
 @tasks.loop(seconds=CHECK_INTERVAL_SECONDS)
 async def scrape_and_send():
     await client.wait_until_ready()
-    channel = client.get_channel(int(CHANNEL_ID)) # Convert to int
+    channel = client.get_channel(int(CHANNEL_ID))
     if not channel:
         print(f"Error: Channel with ID {CHANNEL_ID} not found.")
         return
@@ -141,18 +160,20 @@ async def on_ready():
     print("===================================")
     scrape_and_send.start()
 
-def main():
-    # --- Critical Check for Secrets ---
+def run_discord_bot():
     if not BOT_TOKEN or not CHANNEL_ID:
-        print("FATAL ERROR: BOT_TOKEN and/or CHANNEL_ID not found in environment variables.")
-        print("Please create a .env file or set the variables on your hosting service.")
+        print("FATAL ERROR: Discord secrets not found.")
         return
+    client.run(BOT_TOKEN)
 
-    try:
-        client.run(BOT_TOKEN)
-    except Exception as e:
-        print(f"An error occurred while running the bot: {e}")
-        traceback.print_exc()
-
+# ==============================================================================
+#  3. MAIN EXECUTION BLOCK (This starts both parts)
+# ==============================================================================
 if __name__ == "__main__":
-    main()
+    # Run the Flask app in a separate background thread
+    flask_thread = Thread(target=run_flask_app)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    # Run the Discord bot in the main thread
+    run_discord_bot()
