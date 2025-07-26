@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: trump-tracker-bot
+    env: python
+    buildCommand: bash build.sh
+    startCommand: python trump_tracker_civictracker1.2.py
+    # Pre-install OS packages for Playwright
+    aptPackages:
+      - libnss3
+      - libatk1.0-0
+      - libatk-bridge2.0-0
+      - libcups2
+      - libxcomposite1
+      - libxdamage1
+      - libxrandr2
+      - libgbm1
+      - libxss1
+      - libasound2
+      - libpangocairo-1.0-0
+      - fonts-liberation
+      - libappindicator3-1
+      - lsb-release
