@@ -2,26 +2,27 @@
 
 services:
   - type: web
-    name: truth-social-scraper # This name will appear on your Render dashboard
+    name: truth-social-scraper
     env: python
-    plan: free # Ensures it uses the free tier
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn app:app"
+    plan: free
     healthCheckPath: "/"
-    # Pre-install the system packages that Playwright needs to run correctly
-    aptPackages:
-      - libnss3
-      - libatk1.0-0
-      - libatk-bridge2.0-0
-      - libcups2
-      - libxcomposite1
-      - libxdamage1
-      - libxrandr2
-      - libgbm1
-      - libxss1
-      - libasound2
-      - libpangocairo-1.0-0
-      - fonts-liberation
-      - libappindicator3-1
-      - lsb-release
-      - libgbm-dev
+    
+    # Define a persistent disk to store the Playwright browser cache
+    disks:
+      - name: playwright-cache
+        mountPath: /opt/render/.cache/ms-playwright
+    
+    # The build command is now simpler as we let Playwright manage itself
+    buildCommand: "pip install -r requirements.txt && playwright install"
+    
+    # The start command remains the same
+    startCommand: "gunicorn app:app"
+    
+    # Set an environment variable to tell Playwright where to find its cache
+    envVars:
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/.cache/ms-playwright
+      - key: BOT_TOKEN
+        sync: false # Set in dashboard
+      - key: CHANNEL_ID
+        sync: false # Set in dashboard
