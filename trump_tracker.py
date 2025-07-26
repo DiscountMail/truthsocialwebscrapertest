@@ -1,5 +1,5 @@
 # --- START OF FILE trump_tracker.py ---
-
+import subprocess
 import discord
 from discord.ext import tasks
 import asyncio
@@ -149,7 +149,17 @@ def main():
         return
 
     try:
+        # --- Install Playwright Browser at Runtime ---
+        print("Ensuring Playwright browser is installed...")
+        # Using subprocess.run to execute the command.
+        # Using "shell=True" might be necessary on some systems but try without it first.
+        # For Render's Linux environment, a list of args is more robust.
+        subprocess.run(["playwright", "install", "chromium"], check=True)
+        print("Browser installation check complete.")
+
         client.run(BOT_TOKEN)
+    except subprocess.CalledProcessError as e:
+        print(f"FATAL ERROR: Failed to install Playwright browser. {e}")
     except Exception as e:
         print(f"An error occurred while running the bot: {e}")
         traceback.print_exc()
