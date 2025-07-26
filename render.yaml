@@ -3,7 +3,7 @@ services:
     name: trump-tracker-bot
     env: python
     buildCommand: bash build.sh
-    startCommand: python trump_tracker_civictracker1.2.py
+    startCommand: python app.py
     # Pre-install OS packages for Playwright
     aptPackages:
       - libnss3
