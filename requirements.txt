@@ -1,8 +1,0 @@
-# --- START OF FILE requirements.txt ---
-
-playwright
-beautifulsoup4
-discord.py
-gunicorn
-python-dotenv
-Flask
